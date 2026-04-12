@@ -1,0 +1,10 @@
+name = "sf-api-version-updater"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+# OAuth is handled by the sf-oauth-broker worker (separate project/deployment).
+# This worker only proxies Salesforce Metadata/Tooling API calls.
+
+[vars]
+# The URL of your GitHub Pages site (for CORS)
+ALLOWED_ORIGIN = "https://alphacloudsf.github.io"

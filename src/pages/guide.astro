@@ -1,0 +1,222 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { CONFIG } from "../lib/config";
+---
+
+<Layout title="Guide - SF API Version Updater">
+  <div class="guide-wrap">
+    <h1 class="guide-heading">User Guide</h1>
+
+    <div class="guide-sections">
+      <!-- What it does -->
+      <section class="card guide-section">
+        <h2 class="guide-section-title">What this tool does</h2>
+        <p class="guide-p">
+          Updates the <code class="inline-code">apiVersion</code> field in your Salesforce
+          metadata. It does <strong>not</strong> modify any code, logic, or configuration,
+          only the API version number.
+        </p>
+        <p class="guide-p">
+          Keeping metadata on a current API version ensures access to the latest
+          platform features and avoids deprecated API behavior.
+        </p>
+      </section>
+
+      <!-- Supported types -->
+      <section class="card guide-section">
+        <h2 class="guide-section-title">Supported metadata types</h2>
+        <ul class="guide-list">
+          <li><strong>Apex Classes</strong> (.cls)</li>
+          <li><strong>Apex Triggers</strong> (.trigger)</li>
+          <li><strong>Visualforce Pages</strong> (.page)</li>
+          <li><strong>Visualforce Components</strong> (.component)</li>
+          <li><strong>Aura Components</strong> (Aura bundles)</li>
+          <li><strong>Lightning Web Components</strong> (LWC bundles)</li>
+          <li>
+            <strong>Flows</strong> (deploying creates a new version, the tool optionally
+            cleans up obsolete versions)
+          </li>
+        </ul>
+        <p class="guide-note">
+          Only unmanaged components are shown. Managed package components are
+          excluded.
+        </p>
+      </section>
+
+      <!-- Package Installation -->
+      <section id="why-install" class="card guide-section guide-section-accent">
+        <h2 class="guide-section-title guide-section-title-sm">
+          Step 0: Install the package
+          <span class="guide-section-subtitle">(once per org)</span>
+        </h2>
+        <p class="guide-p guide-p-sm">
+          SF API Version Updater uses a free managed package to register the
+          OAuth connection. Salesforce is retiring legacy Connected Apps in
+          favor of External Client Apps, which must be installed in each org
+          before they can authorize users.
+          <strong>Only needs to be done once per org.</strong>
+        </p>
+
+        <ol class="guide-list guide-list-spaced">
+          <li>Click the install button for your org type below.</li>
+          <li>
+            You'll land on Salesforce's package install screen. Log in if
+            prompted.
+          </li>
+          <li>
+            Choose <strong>"Install for All Users"</strong> (or admins only).
+          </li>
+          <li>Click <strong>Install</strong>. May take a minute or two.</li>
+          <li>Once done, come back and log in.</li>
+        </ol>
+
+        <div class="guide-install-btns" id="guide-install-btns">
+          <a
+            href={CONFIG.PACKAGE_INSTALL_URL_PROD}
+            target="_blank"
+            rel="noopener"
+            class="btn btn-primary btn-sm"
+            >Install in Production / Developer Org</a
+          >
+          <a
+            href={CONFIG.PACKAGE_INSTALL_URL_SANDBOX}
+            target="_blank"
+            rel="noopener"
+            class="btn btn-secondary btn-sm">Install in Sandbox</a
+          >
+        </div>
+
+        <p class="guide-note guide-note-sm">
+          If you see an "app not installed" error when logging in, the tool will
+          automatically redirect you here.
+        </p>
+      </section>
+
+      <!-- How to use -->
+      <section class="card guide-section">
+        <h2 class="guide-section-title">How to use</h2>
+        <ol class="guide-list">
+          <li>
+            <strong>Install the package</strong>: see Step 0 above. One-time per
+            org.
+          </li>
+          <li>
+            <strong>Log in</strong>: click Login (Production) or Login (Sandbox)
+            to authorize via OAuth.
+          </li>
+          <li>
+            <strong>Select metadata types</strong>: choose which types to review
+            and click "Load Components."
+          </li>
+          <li>
+            <strong>Review components</strong>: each row shows the current API
+            version and a status:
+            <span class="guide-pill-row">
+              <span class="pill pill-current">Current</span>
+              <span class="pill pill-outdated">Outdated</span>
+              <span class="pill pill-deprecated">Deprecated</span>
+            </span>
+          </li>
+          <li>
+            <strong>Select components</strong>: use checkboxes, "Select all," or
+            the search and filter controls.
+          </li>
+          <li>
+            <strong>Choose target version</strong>: defaults to the latest
+            available API version.
+          </li>
+          <li>
+            <strong>Set test level</strong>: optionally run Apex tests during
+            deployment. Failed tests trigger auto-rollback.
+          </li>
+          <li>
+            <strong>Backup</strong>: "Download backup first" is checked by
+            default. Saves a ZIP of original metadata.
+          </li>
+          <li>
+            <strong>Update</strong>: click "Update Selected Components" and
+            watch progress in the log panel.
+          </li>
+        </ol>
+      </section>
+
+      <!-- Flow versioning -->
+      <section class="card guide-section">
+        <h2 class="guide-section-title">Flow version management</h2>
+        <p class="guide-p">
+          Deploying an updated Flow creates a <strong>new version</strong>. The
+          old version becomes inactive.
+        </p>
+        <p class="guide-p">
+          Enable "Delete previous (inactive) Flow version after successful
+          update" to clean up automatically. Leave it off if you want to keep
+          the old version as a rollback point.
+        </p>
+      </section>
+
+      <!-- Security -->
+      <section class="card guide-section">
+        <h2 class="guide-section-title">Security &amp; privacy</h2>
+        <ul class="guide-list">
+          <li>Credentials are <strong>never stored</strong> on any server.</li>
+          <li>
+            Tokens live in browser session storage only (cleared when the tab
+            closes).
+          </li>
+          <li>
+            The Cloudflare Worker proxy is <strong>stateless</strong>: it
+            forwards requests without storing data.
+          </li>
+          <li>Metadata is processed entirely in your browser memory.</li>
+          <li>All traffic uses HTTPS.</li>
+          <li>The source code is fully open source.</li>
+        </ul>
+      </section>
+
+      <!-- Prerequisites -->
+      <section class="card guide-section">
+        <h2 class="guide-section-title">Prerequisites</h2>
+        <ul class="guide-list">
+          <li>A Salesforce org (Production, Developer, or Sandbox)</li>
+          <li>
+            A user with <strong>API Access</strong> and <strong
+              >Modify All Data</strong
+            > or <strong>Author Apex</strong>
+          </li>
+          <li>For Flows: <strong>Manage Flows</strong> permission</li>
+          <li>A modern browser (Chrome, Firefox, Edge, Safari)</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  @keyframes highlight-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.1);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+    }
+  }
+  .highlight-anchor {
+    animation: highlight-pulse 1.2s ease-out 0.2s 2;
+  }
+</style>
+
+<script>
+  if (window.location.hash === "#why-install") {
+    const el = document.getElementById("why-install");
+    if (el) {
+      const headerHeight = 52 + 16; // sticky header + a little breathing room
+      const top =
+        el.getBoundingClientRect().top + window.scrollY - headerHeight;
+      window.scrollTo({ top, behavior: "smooth" });
+      el.classList.add("highlight-anchor");
+    }
+  }
+</script>

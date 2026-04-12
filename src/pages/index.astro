@@ -1,0 +1,420 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { CONFIG } from "../lib/config";
+---
+
+<Layout title="SF API Version Updater">
+  <!-- Login Section -->
+  <div id="login-section">
+    <div class="login-content">
+      <h1 class="login-headline">Salesforce API Version Updater</h1>
+      <p class="login-subtext">
+        Bulk-update the <code class="inline-code">apiVersion</code> field across Apex
+        Classes, Triggers, LWCs, Flows, Aura and Visualforce. Safe, with backup and
+        test execution.
+      </p>
+
+      <!-- Package install notice -->
+      <div class="card install-notice">
+        <div class="card-inner install-notice-inner">
+          <p class="install-notice-title">One-time setup required</p>
+          <p class="install-notice-body">
+            Install the free managed package in your org once. This registers
+            the OAuth connection. If already installed, skip this step.
+          </p>
+          <div class="install-notice-actions">
+            <a
+              href={CONFIG.PACKAGE_INSTALL_URL_PROD}
+              target="_blank"
+              rel="noopener"
+              class="btn btn-primary btn-sm">Install in Production</a
+            >
+            <a
+              href={CONFIG.PACKAGE_INSTALL_URL_SANDBOX}
+              target="_blank"
+              rel="noopener"
+              class="btn btn-secondary btn-sm">Install in Sandbox</a
+            >
+            <a
+              href={`${import.meta.env.BASE_URL}guide#why-install`}
+              class="link-accent">Why is this needed?</a
+            >
+          </div>
+        </div>
+
+        <p class="connect-label">Connect to your org</p>
+        <div class="login-buttons">
+          <button id="login-prod-btn" class="btn btn-primary btn-lg">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"
+              ><path
+                d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z"
+              ></path></svg
+            >
+            Login (Production)
+          </button>
+          <button id="login-sandbox-btn" class="btn btn-secondary btn-lg">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"
+              ><path
+                d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z"
+              ></path></svg
+            >
+            Login (Sandbox)
+          </button>
+        </div>
+      </div>
+
+      <!-- Feature strip -->
+      <div class="feature-grid">
+        <div class="card feature-card">
+          <p class="feature-card-title">Safe</p>
+          <p class="feature-card-body">
+            Only the API version field is touched. Code and logic stay intact.
+          </p>
+        </div>
+        <div class="card feature-card">
+          <p class="feature-card-title">Backup first</p>
+          <p class="feature-card-body">
+            Download the original zip before any change. Revert anytime.
+          </p>
+        </div>
+        <div class="card feature-card">
+          <p class="feature-card-title">Rollback on failure</p>
+          <p class="feature-card-body">
+            Run tests during deploy. Auto-rollback if anything fails.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Section -->
+  <div id="dashboard-section" class="hidden">
+    <!-- Org Info Bar -->
+    <div class="card org-bar">
+      <div class="org-bar-left">
+        <span class="section-label">Connected</span>
+        <span id="org-info" class="org-info-text"></span>
+      </div>
+      <div class="org-bar-right">
+        <span class="org-version-label">Latest API version</span>
+        <span id="latest-version-badge" class="version-badge"></span>
+      </div>
+    </div>
+
+    <!-- Metadata Type Selector -->
+    <div class="card panel">
+      <p class="panel-title">Select metadata types</p>
+      <div id="metadata-type-grid" class="metadata-grid">
+        <!-- Populated by JS -->
+      </div>
+      <div class="panel-footer">
+        <button id="load-components-btn" class="btn btn-primary" disabled
+          >Load Components</button
+        >
+      </div>
+    </div>
+
+    <!-- Components Table -->
+    <div id="components-section" class="hidden">
+      <div class="card panel">
+        <div class="table-toolbar">
+          <p class="panel-title" style="margin:0;">Components</p>
+          <div class="table-toolbar-right">
+            <label class="checkbox-label">
+              <input type="checkbox" id="select-all-cb" class="checkbox" />
+              Select all
+            </label>
+            <span id="components-count" class="count-text"></span>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search components..."
+            class="input"
+          />
+          <select id="status-filter" class="select">
+            <option value="all">All statuses</option>
+            <option value="deprecated">Deprecated</option>
+            <option value="outdated">Outdated</option>
+            <option value="current">Current</option>
+          </select>
+          <select id="type-filter" class="select">
+            <option value="all">All types</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:32px;"></th>
+                <th class="th-sortable" data-col="name"
+                  >Name <span class="sort-arrow">↑</span></th
+                >
+                <th class="th-sortable" data-col="type"
+                  >Type <span class="sort-arrow"></span></th
+                >
+                <th class="th-sortable" data-col="apiVersion"
+                  >API Version <span class="sort-arrow"></span></th
+                >
+                <th class="th-sortable" data-col="status"
+                  >Status <span class="sort-arrow"></span></th
+                >
+                <th class="th-sortable" data-col="lastModified"
+                  >Last Modified <span class="sort-arrow"></span></th
+                >
+              </tr>
+            </thead>
+            <tbody id="components-tbody"></tbody>
+          </table>
+        </div>
+
+        <div id="no-components-msg" class="hidden empty-msg">
+          No components match your filters.
+        </div>
+
+        <div id="pagination-bar" class="hidden">
+          <span id="pagination-info" class="pagination-meta"></span>
+          <div class="pagination-controls">
+            <button id="page-first" class="btn btn-ghost btn-sm">«</button>
+            <button id="page-prev" class="btn btn-ghost btn-sm">‹</button>
+            <span id="page-numbers" class="page-numbers"></span>
+            <button id="page-next" class="btn btn-ghost btn-sm">›</button>
+            <button id="page-last" class="btn btn-ghost btn-sm">»</button>
+            <select id="page-size-select" class="select page-size-select">
+              <option value="25" selected>25 / page</option>
+              <option value="50">50 / page</option>
+              <option value="100">100 / page</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions Panel -->
+      <div class="card panel">
+        <p class="panel-title panel-title-lg">Update actions</p>
+
+        <div class="actions-row">
+          <div>
+            <label for="target-version-select" class="section-label field-label">Target API version</label>
+            <select id="target-version-select" class="select"
+              ><!-- Populated by JS --></select
+            >
+          </div>
+
+          <div>
+            <div class="tooltip-trigger-row">
+              <span class="section-label">Test level</span>
+              <div class="tooltip">
+                <button type="button" class="tooltip-btn" tabindex="0">?</button
+                >
+                <div class="tooltip-content">
+                  <strong class="tooltip-heading">Test levels</strong>
+                  <span class="tooltip-row"
+                    ><b>No Tests</b> — Skip all tests. Fast, no safety net.</span
+                  >
+                  <span class="tooltip-row"
+                    ><b>Local Tests</b> — Run org tests (not managed packages). Recommended.</span
+                  >
+                  <span class="tooltip-row"
+                    ><b>All Tests</b> — Run every test including managed packages.
+                    Slowest.</span
+                  >
+                  <span class="tooltip-row"
+                    ><b>Relevant Tests</b> — Salesforce auto-selects tests related
+                    to deployed code.</span
+                  >
+                  <span class="tooltip-row"
+                    ><b>Specific Tests</b> — Choose individual test classes.</span
+                  >
+                  <span class="tooltip-row"
+                    ><b>Test Suites</b> — Run a saved test suite.</span
+                  >
+                </div>
+              </div>
+            </div>
+            <select id="test-level-select" class="select">
+              <option value="NoTestRun">No Tests</option>
+              <option value="RunLocalTests">Run Local Tests</option>
+              <option value="RunAllTestsInOrg">Run All Tests</option>
+              <option value="RunRelevantTests">Run Relevant Tests</option>
+              <option value="RunSpecifiedTests">Specific Test Classes</option>
+              <option value="RunSpecifiedTestSuites"
+                >Specific Test Suites</option
+              >
+            </select>
+          </div>
+
+          <div>
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                id="backup-before-update"
+                checked
+                class="checkbox"
+              />
+              Download backup first
+            </label>
+          </div>
+        </div>
+
+        <!-- Specific test classes picker -->
+        <div id="test-classes-panel" class="hidden picker-panel">
+          <div class="picker-header">
+            <span class="picker-title">Select test classes</span>
+            <div class="picker-actions">
+              <button
+                type="button"
+                id="test-classes-select-all"
+                class="btn btn-ghost btn-sm">Select all</button
+              >
+              <button
+                type="button"
+                id="test-classes-clear"
+                class="btn btn-ghost btn-sm">Clear</button
+              >
+            </div>
+          </div>
+          <input
+            type="search"
+            id="test-classes-search"
+            placeholder="Search test classes..."
+            class="input picker-search hidden"
+          />
+          <div id="test-classes-loading" class="picker-loading">
+            Loading test classes...
+          </div>
+          <div id="test-classes-list" class="test-picker hidden"></div>
+          <p id="test-classes-empty" class="hidden picker-loading">
+            No test classes found in this org.
+          </p>
+        </div>
+
+        <!-- Specific test suites picker -->
+        <div id="test-suites-panel" class="hidden picker-panel">
+          <div class="picker-header">
+            <span class="picker-title">Select test suites</span>
+            <div class="picker-actions">
+              <button
+                type="button"
+                id="test-suites-select-all"
+                class="btn btn-ghost btn-sm">Select all</button
+              >
+              <button
+                type="button"
+                id="test-suites-clear"
+                class="btn btn-ghost btn-sm">Clear</button
+              >
+            </div>
+          </div>
+          <input
+            type="search"
+            id="test-suites-search"
+            placeholder="Search test suites..."
+            class="input picker-search hidden"
+          />
+          <div id="test-suites-loading" class="picker-loading">
+            Loading test suites...
+          </div>
+          <div id="test-suites-list" class="test-picker hidden"></div>
+          <p id="test-suites-empty" class="hidden picker-loading">
+            No test suites found in this org.
+          </p>
+        </div>
+
+        <!-- Flow option -->
+        <div id="flow-options" class="hidden flow-options-panel">
+          <div class="card-inner flow-options-inner">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                id="delete-old-flow-version"
+                class="checkbox"
+              />
+              Delete previous (inactive) Flow version after successful update
+            </label>
+            <p class="flow-option-note">
+              Deploying a Flow creates a new version. Enable this to clean up
+              the old version automatically.
+            </p>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button id="update-btn" class="btn btn-success" disabled
+            >Update selected components</button
+          >
+          <button id="backup-btn" class="btn btn-secondary" disabled
+            >Download backup only</button
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress Panel -->
+    <div id="progress-section" class="hidden">
+      <div class="card panel">
+        <p class="panel-title">Update progress</p>
+        <div id="progress-log" class="progress-log"></div>
+        <div id="progress-bar-container" class="hidden progress-bar-wrap">
+          <div class="progress-bar-track">
+            <div id="progress-bar" class="progress-bar-fill"></div>
+          </div>
+          <p id="progress-text" class="progress-pct-text"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="hidden overlay-backdrop loading-backdrop">
+    <div class="card loading-card">
+      <div class="loading-spinner"></div>
+      <p id="loading-text" class="loading-label">Loading...</p>
+    </div>
+  </div>
+
+  <!-- Session Expired Modal -->
+  <div
+    id="session-expired-modal"
+    class="hidden overlay-backdrop modal-backdrop"
+  >
+    <div class="card modal-card">
+      <p class="modal-title">Session expired</p>
+      <p class="modal-body">
+        Your Salesforce session expired and could not be refreshed. Log in again
+        to continue — your progress log will be preserved.
+      </p>
+      <div class="modal-footer">
+        <button id="session-expired-prod-btn" class="btn btn-primary btn-sm"
+          >Log in (Production)</button
+        >
+        <button
+          id="session-expired-sandbox-btn"
+          class="btn btn-secondary btn-sm">Log in (Sandbox)</button
+        >
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Modal -->
+  <div id="error-modal" class="hidden overlay-backdrop modal-backdrop">
+    <div class="card modal-card">
+      <p class="modal-title">Error</p>
+      <p id="error-modal-body" class="modal-body"></p>
+      <div class="modal-footer">
+        <button id="error-modal-dismiss" class="btn btn-primary btn-sm"
+          >Dismiss</button
+        >
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { init } from "../app/init";
+  init();
+</script>
