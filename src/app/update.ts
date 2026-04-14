@@ -1,8 +1,9 @@
 import {
   targetVersionSelect, testLevelSelect, backupBeforeUpdate, deleteOldFlowVersion,
-  progressSection, progressLog, progressBarContainer, backupBtn,
+  progressLog, progressBarContainer, backupBtn,
 } from './dom';
 import { allComponents } from './state';
+import { showRepoSyncPanel, hideProgressPlaceholder } from './repo-sync';
 import {
   retrieveMetadata, deployMetadata, checkDeployStatus, deleteFlowVersion, getSuiteClasses,
 } from '../lib/salesforce';
@@ -29,18 +30,18 @@ export async function performUpdate() {
     testClasses = getCheckedValues(testClassesList);
     if (testClasses.length === 0) {
       logProgress('Please select at least one test class.', 'error');
-      progressSection.classList.remove('hidden');
+      hideProgressPlaceholder();
       return;
     }
   } else if (rawTestLevel === 'RunSpecifiedTestSuites') {
     const suiteNames = getCheckedValues(testSuitesList);
     if (suiteNames.length === 0) {
       logProgress('Please select at least one test suite.', 'error');
-      progressSection.classList.remove('hidden');
+      hideProgressPlaceholder();
       return;
     }
     logProgress('Resolving test suite members...');
-    progressSection.classList.remove('hidden');
+    hideProgressPlaceholder();
     try {
       testClasses = await getSuiteClasses(suiteNames);
       if (testClasses.length === 0) {
@@ -55,7 +56,7 @@ export async function performUpdate() {
     testLevel = 'RunSpecifiedTests';
   }
 
-  progressSection.classList.remove('hidden');
+  hideProgressPlaceholder();
   progressLog.innerHTML = '';
   progressBarContainer.classList.remove('hidden');
 
@@ -192,6 +193,7 @@ export async function performUpdate() {
 
       updateProgress(100);
       logProgress('All done! Refresh the component list to verify.', 'success');
+      await showRepoSyncPanel(toUpdate, zipBase64);
     } else {
       logProgress('Deployment failed! Changes have been rolled back.', 'error');
       for (const err of status.errors) {
@@ -221,10 +223,10 @@ export async function performBackupOnly() {
     const zipBase64 = await retrieveMetadata(components);
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     downloadBackup(zipBase64, `sf-metadata-backup-${timestamp}.zip`);
-    progressSection.classList.remove('hidden');
+    hideProgressPlaceholder();
     logProgress('Backup downloaded successfully.', 'success');
   } catch (err: any) {
-    progressSection.classList.remove('hidden');
+    hideProgressPlaceholder();
     logProgress(`Backup failed: ${err.message}`, 'error');
   }
 

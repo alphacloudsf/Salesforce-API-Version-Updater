@@ -82,6 +82,7 @@ Because Astro outputs a fully static site, there is no Node.js server, no SSR, a
 | `src/app/table.ts` | `renderTable`, `applyFilters`, `applySort`, `updatePagination` |
 | `src/app/test-picker.ts` | Test class / test suite picker rendering and interaction |
 | `src/app/update.ts` | `performUpdate` (full retrieve > patch > deploy > poll flow), `performBackupOnly` |
+| `src/app/repo-sync.ts` | Generates repo sync commands and wires the package.xml download after a successful deploy |
 | `src/app/ui.ts` | `logProgress`, `logError`, `showLoading`, `updateProgress`, `escapeHtml` |
 
 **Libraries (`src/lib/`)**
@@ -137,6 +138,15 @@ Rather than polling every few seconds (which would exhaust the Cloudflare Worker
 
 The browser polls `checkDeployStatus` until `done: true`, then reads `success`, `errors`, and `testFailures` from the response.
 
+**Repo sync (post-deploy)**
+After a successful deploy, `src/app/repo-sync.ts` takes over:
+
+1. Extracts `unpackaged/package.xml` from the already-in-memory retrieve ZIP (no extra network call) and offers it as a download named `sf-api-updated-package.xml`.
+2. Displays a fixed retrieve command: `sf project retrieve start --manifest manifest/sf-api-updated-package.xml`. This command is short and OS-agnostic regardless of how many components were updated.
+3. Displays a `git add` command (bash/zsh and PowerShell variants) that stages only `-meta.xml` files from both modified and untracked files: `git ls-files --modified --others --exclude-standard | grep -E '\-meta\.xml$'`. The user manually handles any companion source files (`.cls`, `.trigger`, etc.) that were retrieved alongside the metadata.
+
+This covers the gap between the org-side update and the user's local repo without requiring any server-side storage or GitHub integration.
+
 ---
 
 ## 3. Layer 2: Cloudflare Workers (Proxy)
@@ -145,7 +155,7 @@ This project uses **two separate Cloudflare Workers** with distinct responsibili
 
 ### 3a. OAuth Broker (`sf-oauth-broker`)
 
-**Source:** `D:\Projects\Salesforce-OAuth-Broker\src\index.ts` (separate repo)
+**Source:** `Salesforce-OAuth-Broker\src\index.ts` (separate repo)
 **Hosted at:** `https://sf-oauth-broker.<account>.workers.dev`
 
 A **generic, reusable worker**, not specific to this project. Any app that uses the same Salesforce ECA can point its OAuth calls here without modification.
@@ -425,7 +435,7 @@ Source changes to `src/` trigger an automatic deploy via GitHub Actions on push 
 ### OAuth Broker (`sf-oauth-broker`)
 
 ```
-Manual deploy from D:\Projects\Salesforce-OAuth-Broker:
+Manual deploy from Salesforce-OAuth-Broker:
   npx wrangler deploy
 
 Shared across projects; only needs redeploying when the ECA credentials change

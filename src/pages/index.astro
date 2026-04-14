@@ -354,18 +354,94 @@ import { CONFIG } from "../lib/config";
       </div>
     </div>
 
-    <!-- Progress Panel -->
-    <div id="progress-section" class="hidden">
-      <div class="card panel">
-        <p class="panel-title">Update progress</p>
-        <div id="progress-log" class="progress-log"></div>
-        <div id="progress-bar-container" class="hidden progress-bar-wrap">
-          <div class="progress-bar-track">
-            <div id="progress-bar" class="progress-bar-fill"></div>
+    <!-- Progress + Repo Sync: two-column layout (shown when components load) -->
+    <div id="progress-sync-row" class="hidden progress-sync-row">
+
+      <!-- Progress Panel -->
+      <div id="progress-section">
+        <div class="card panel repo-sync-card">
+          <p class="panel-title">Update progress</p>
+          <div id="progress-log" class="progress-log"></div>
+          <div id="progress-bar-container" class="hidden progress-bar-wrap">
+            <div class="progress-bar-track">
+              <div id="progress-bar" class="progress-bar-fill"></div>
+            </div>
+            <p id="progress-text" class="progress-pct-text"></p>
           </div>
-          <p id="progress-text" class="progress-pct-text"></p>
+          <!-- Idle placeholder shown before deploy starts -->
+          <div id="progress-placeholder" class="repo-sync-placeholder">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" class="repo-sync-placeholder-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            <p class="repo-sync-placeholder-text">Select components and click update to start.</p>
+          </div>
         </div>
       </div>
+
+      <!-- Repo Sync Panel -->
+      <div id="repo-sync-section">
+        <div class="card panel repo-sync-card">
+
+          <p class="panel-title">Sync to your repo</p>
+
+          <!-- Placeholder state (shown until commands are generated) -->
+          <div id="repo-sync-placeholder" class="repo-sync-placeholder">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" class="repo-sync-placeholder-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
+            </svg>
+            <p class="repo-sync-placeholder-text">Run a successful update to generate repo sync commands.</p>
+          </div>
+
+          <!-- Commands (hidden until generated) -->
+          <div id="repo-sync-commands" class="hidden">
+            <p class="panel-description">
+              Run at your repo root after the deploy to pull only the updated metadata.
+            </p>
+
+            <div class="repo-sync-block">
+              <div class="repo-sync-label-row">
+                <p class="repo-sync-label">1. Download manifest</p>
+                <button id="download-package-xml-btn" class="btn btn-primary btn-sm hidden">Download package.xml</button>
+              </div>
+            </div>
+
+            <div class="repo-sync-block">
+              <div class="repo-sync-label-row">
+                <p class="repo-sync-label">2. Retrieve updated metadata</p>
+              </div>
+              <div class="repo-sync-sub-block">
+                <div class="repo-sync-label-row">
+                  <p class="repo-sync-sublabel">all platforms</p>
+                  <button id="copy-retrieve-btn" class="btn btn-secondary btn-sm">Copy</button>
+                </div>
+                <pre id="retrieve-command" class="repo-sync-command"></pre>
+              </div>
+            </div>
+
+            <div class="repo-sync-block">
+              <p class="repo-sync-label">3. Stage metadata files</p>
+
+              <div class="repo-sync-sub-block">
+                <div class="repo-sync-label-row">
+                  <p class="repo-sync-sublabel">bash / zsh</p>
+                  <button id="copy-checkout-bash-btn" class="btn btn-secondary btn-sm">Copy</button>
+                </div>
+                <pre id="checkout-command-bash" class="repo-sync-command"></pre>
+              </div>
+
+              <div class="repo-sync-sub-block">
+                <div class="repo-sync-label-row">
+                  <p class="repo-sync-sublabel">PowerShell</p>
+                  <button id="copy-checkout-pwsh-btn" class="btn btn-secondary btn-sm">Copy</button>
+                </div>
+                <pre id="checkout-command-pwsh" class="repo-sync-command"></pre>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
   </div>
 

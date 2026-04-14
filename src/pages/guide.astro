@@ -140,6 +140,42 @@ import { CONFIG } from "../lib/config";
         </ol>
       </section>
 
+      <!-- Repo sync -->
+      <section class="card guide-section">
+        <h2 class="guide-section-title">Syncing changes to your repo</h2>
+        <p class="guide-p">
+          After a successful deploy, the tool generates everything you need to
+          pull the updated metadata into your local SFDX project. No need to
+          manually re-retrieve the whole org or overwriting source files.
+        </p>
+        <ol class="guide-list">
+          <li>
+            <strong>1. Download the manifest</strong>: click "Download
+            package.xml" to get a manifest scoped to exactly the components that
+            were updated. Place it at <code class="inline-code"
+              >manifest/sf-api-updated-package.xml</code
+            > in your repo root.
+          </li>
+          <li>
+            <strong>2. Retrieve</strong>: run the SF CLI command to pull only
+            those components into your local project.
+            <pre
+              class="guide-code">sf project retrieve start --manifest manifest/sf-api-updated-package.xml</pre>
+          </li>
+          <li>
+            <strong>3. Stage metadata files</strong>: run the
+            <code class="inline-code">git add</code> command (bash/zsh or PowerShell)
+            to stage only the <code class="inline-code">-meta.xml</code> files. Companion
+            source files (<code class="inline-code">.cls</code>,
+            <code class="inline-code">.trigger</code>, etc.) are left unstaged
+            for you to handle manually.
+          </li>
+          <li>
+            <strong>4. Commit</strong>: review the staged changes and commit.
+          </li>
+        </ol>
+      </section>
+
       <!-- Flow versioning -->
       <section class="card guide-section">
         <h2 class="guide-section-title">Flow version management</h2>

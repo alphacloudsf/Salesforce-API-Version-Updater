@@ -61,6 +61,18 @@ function isMetadataXml(path: string): boolean {
 }
 
 /**
+ * Extracts unpackaged/package.xml from a retrieve zip and returns it as a Blob.
+ * Returns null if the file is not found.
+ */
+export async function extractPackageXml(zipBase64: string): Promise<Blob | null> {
+  const zip = await JSZip.loadAsync(zipBase64, { base64: true });
+  const file = zip.file('unpackaged/package.xml');
+  if (!file) return null;
+  const content = await file.async('uint8array');
+  return new Blob([content], { type: 'application/xml' });
+}
+
+/**
  * Creates a downloadable backup from a base64 zip
  */
 export function downloadBackup(zipBase64: string, filename: string): void {

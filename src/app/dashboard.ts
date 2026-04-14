@@ -1,7 +1,7 @@
 import {
   loginSection, dashboardSection, userInfoDiv, usernameDisplay, orgInfoSpan,
   latestVersionBadge, targetVersionSelect, metadataTypeGrid, loadComponentsBtn,
-  componentsSection, typeFilter, flowOptions,
+  componentsSection, typeFilter, flowOptions, progressSyncRow,
 } from './dom';
 import {
   setDeprecatedThreshold, setAllApiVersions, setAllComponents,
@@ -121,6 +121,7 @@ export async function loadComponents() {
 
     applyFilters(searchInput.value, statusFilter.value, typeFilter.value);
     componentsSection.classList.remove('hidden');
+    progressSyncRow.classList.remove('hidden');
   } catch (err: any) {
     logError(`Failed to load components: ${err.message}`);
   }

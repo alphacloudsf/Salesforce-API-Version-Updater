@@ -31,7 +31,7 @@ const xmlParser = new XMLParser({
 });
 
 interface Env {
-  ALLOWED_ORIGIN: string;
+  ALLOWED_ORIGINS: string;
 }
 
 // Per-request cache for the latest API version (keyed by instanceUrl).
@@ -40,9 +40,17 @@ let apiVersionCache = new Map<string, Promise<string>>();
 
 // ─── CORS ─────────────────────────────────────────────────────────
 
+function getAllowedOrigins(env: Env): string[] {
+  return env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean);
+}
+
+function isAllowed(origin: string, env: Env): boolean {
+  if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) return true;
+  return getAllowedOrigins(env).includes(origin);
+}
+
 function corsHeaders(origin: string, env: Env): Record<string, string> {
-  const allowed = [env.ALLOWED_ORIGIN, 'http://localhost:4321', 'http://localhost:3000'];
-  const effectiveOrigin = allowed.includes(origin) ? origin : env.ALLOWED_ORIGIN;
+  const effectiveOrigin = isAllowed(origin, env) ? origin : (getAllowedOrigins(env)[0] ?? '');
   return {
     'Access-Control-Allow-Origin': effectiveOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -65,7 +73,7 @@ export default {
     apiVersionCache = new Map();
 
     const url = new URL(request.url);
-    const origin = request.headers.get('Origin') || env.ALLOWED_ORIGIN;
+    const origin = request.headers.get('Origin') || (getAllowedOrigins(env)[0] ?? '');
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: corsHeaders(origin, env) });

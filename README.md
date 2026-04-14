@@ -16,6 +16,7 @@ Salesforce metadata components (Apex classes, triggers, LWC, Aura, Flows, Visual
 4. Retrieve the selected components as a metadata zip
 5. Patch only the `<apiVersion>` tag in each file, no other changes
 6. Deploy the modified zip back to your org with `rollbackOnError: true`
+7. Download a `package.xml` manifest and use the SF CLI and git commands to sync the changes back to your local repo
 
 All metadata processing happens in the browser. The proxy server (Cloudflare Worker) forwards API calls but never stores, parses, or logs metadata content.
 
@@ -32,6 +33,16 @@ All metadata processing happens in the browser. The proxy server (Cloudflare Wor
 - Visualforce Components
 
 Only unmanaged components are shown. Managed package components are excluded.
+
+---
+
+## Syncing changes to your repo
+
+After a successful deploy, the tool generates the commands needed to pull the updated metadata into your local SFDX project without overwriting your source files.
+
+1. **Download `package.xml`**: a manifest scoped to exactly the components that were updated. Place it at `manifest/sf-api-updated-package.xml` in your repo root.
+2. **Retrieve**: `sf project retrieve start --manifest manifest/sf-api-updated-package.xml`
+3. **Stage metadata files**: stage only the `-meta.xml` files that changed, leaving companion source files (`.cls`, `.trigger`, etc.) untouched for you to handle manually.
 
 ---
 
